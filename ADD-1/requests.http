@@ -1,0 +1,204 @@
+@baseUrl = http://127.0.0.1:5000
+@json = application/json
+
+
+############################################
+# 0) Публичная проверка: список объявлений
+############################################
+GET {{baseUrl}}/ads
+
+
+############################################
+# 1) Регистрация пользователей (один раз)
+#    Если пользователь уже существует -> 409
+############################################
+
+### Регистрация пользователя 1 (Ivan)
+POST {{baseUrl}}/auth/register
+Content-Type: {{json}}
+
+{
+  "email": "ivan@mail.com",
+  "password": "123456"
+}
+
+### Регистрация пользователя 2 (Voldemar)
+POST {{baseUrl}}/auth/register
+Content-Type: {{json}}
+
+{
+  "email": "voldemar@mail.com",
+  "password": "123456"
+}
+
+
+############################################
+# 2) Логин пользователей (получаем JWT)
+############################################
+
+### Логин Ivan (получаем токен)
+# @name login_ivan
+POST {{baseUrl}}/auth/login
+Content-Type: {{json}}
+
+{
+  "email": "ivan@mail.com",
+  "password": "123456"
+}
+
+### Логин Voldemar (получаем токен)
+# @name login_voldemar
+POST {{baseUrl}}/auth/login
+Content-Type: {{json}}
+
+{
+  "email": "voldemar@mail.com",
+  "password": "123456"
+}
+
+
+############################################
+# 3) Провальные попытки создания объявления
+############################################
+
+### Попытка создать объявление без токена (должно быть 401)
+POST {{baseUrl}}/ads
+Content-Type: {{json}}
+
+{
+  "title": "Продам ноутбук",
+  "description": "Core i7, 16GB RAM"
+}
+
+### Попытка создать объявление с пустым title (должно быть 400)
+POST {{baseUrl}}/ads
+Content-Type: {{json}}
+Authorization: Bearer {{login_ivan.response.body.$.access_token}}
+
+{
+  "title": "",
+  "description": "Описание есть, заголовок пустой"
+}
+
+### Попытка создать объявление без description (должно быть 400)
+POST {{baseUrl}}/ads
+Content-Type: {{json}}
+Authorization: Bearer {{login_ivan.response.body.$.access_token}}
+
+{
+  "title": "Заголовок есть"
+}
+
+
+############################################
+# 4) Успешное создание объявления Ivan
+############################################
+
+### Ivan создаёт объявление (должно быть 201)
+# @name create_ad_ivan
+POST {{baseUrl}}/ads
+Content-Type: {{json}}
+Authorization: Bearer {{login_ivan.response.body.$.access_token}}
+
+{
+  "title": "Продам ноутбук",
+  "description": "Core i7, 16GB RAM, SSD 512GB"
+}
+
+
+############################################
+# 5) Получение объявления (публично)
+############################################
+
+### Получить объявление по id (если id = 1)
+GET {{baseUrl}}/ads/1
+
+### Получить объявление по id из ответа создания (надежнее)
+GET {{baseUrl}}/ads/{{create_ad_ivan.response.body.$.id}}
+
+
+############################################
+# 6) Провальные попытки редактирования
+############################################
+
+### Попытка редактировать объявление без токена (должно быть 401)
+PATCH {{baseUrl}}/ads/{{create_ad_ivan.response.body.$.id}}
+Content-Type: {{json}}
+
+{
+  "description": "Пытаюсь изменить без авторизации"
+}
+
+### Попытка редактировать чужое объявление от Voldemar (должно быть 403)
+PATCH {{baseUrl}}/ads/{{create_ad_ivan.response.body.$.id}}
+Content-Type: {{json}}
+Authorization: Bearer {{login_voldemar.response.body.$.access_token}}
+
+{
+  "description": "Пытаюсь изменить чужое объявление"
+}
+
+### Попытка редактировать с неизвестным полем (должно быть 400)
+PATCH {{baseUrl}}/ads/{{create_ad_ivan.response.body.$.id}}
+Content-Type: {{json}}
+Authorization: Bearer {{login_ivan.response.body.$.access_token}}
+
+{
+  "unknown_field": "это поле нельзя отправлять"
+}
+
+### Попытка редактировать с пустым title (должно быть 400)
+PATCH {{baseUrl}}/ads/{{create_ad_ivan.response.body.$.id}}
+Content-Type: {{json}}
+Authorization: Bearer {{login_ivan.response.body.$.access_token}}
+
+{
+  "title": ""
+}
+
+
+############################################
+# 7) Успешное редактирование владельцем (Ivan)
+############################################
+
+### Ivan редактирует своё объявление (должно быть 200)
+PATCH {{baseUrl}}/ads/{{create_ad_ivan.response.body.$.id}}
+Content-Type: {{json}}
+Authorization: Bearer {{login_ivan.response.body.$.access_token}}
+
+{
+  "title": "Продам игровой ноутбук",
+  "description": "Core i7, 32GB RAM, RTX 4060"
+}
+
+
+############################################
+# 8) Провальные попытки удаления
+############################################
+
+### Попытка удалить без токена (должно быть 401)
+DELETE {{baseUrl}}/ads/{{create_ad_ivan.response.body.$.id}}
+
+### Попытка удалить чужое объявление от Voldemar (должно быть 403)
+DELETE {{baseUrl}}/ads/{{create_ad_ivan.response.body.$.id}}
+Authorization: Bearer {{login_voldemar.response.body.$.access_token}}
+
+
+############################################
+# 9) Успешное удаление владельцем (Ivan)
+############################################
+
+### Ivan удаляет своё объявление (должно быть 200)
+DELETE {{baseUrl}}/ads/{{create_ad_ivan.response.body.$.id}}
+Authorization: Bearer {{login_ivan.response.body.$.access_token}}
+
+
+############################################
+# 10) Проверка после удаления
+############################################
+
+### Получить удалённое объявление (должно быть 404)
+GET {{baseUrl}}/ads/{{create_ad_ivan.response.body.$.id}}
+
+### Список объявлений после удаления
+GET {{baseUrl}}/ads

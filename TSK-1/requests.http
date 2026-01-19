@@ -1,0 +1,50 @@
+@baseUrl = http://127.0.0.1:5000
+@json = application/json
+
+
+### ✅ Проверка сервиса (список всех объявлений)
+GET {{baseUrl}}/ads
+
+
+### ✅ Создать объявление (POST)
+POST {{baseUrl}}/ads
+Content-Type: {{json}}
+
+{
+  "title": "Продам ноутбук",
+  "description": "Core i7, 16GB RAM, SSD 512GB",
+  "owner": "Ivan"
+}
+
+
+### ✅ Создать ещё одно объявление (POST)
+POST {{baseUrl}}/ads
+Content-Type: {{json}}
+
+{
+  "title": "Сдам квартиру",
+  "description": "2 комнаты, центр, 10 минут до метро",
+  "owner": "Voldemar"
+}
+
+
+### ✅ Получить объявление по ID (GET)
+GET {{baseUrl}}/ads/4
+
+
+### ✅ Редактировать объявление по ID (PATCH)
+PATCH {{baseUrl}}/ads/4
+Content-Type: {{json}}
+
+{
+  "title": "Продам игровой ноутбук",
+  "description": "Core i7, 32GB RAM, RTX 4060"
+}
+
+
+### ✅ Удалить объявление по ID (DELETE)
+DELETE {{baseUrl}}/ads/4
+
+
+### ✅ Проверка: список объявлений после удаления
+GET {{baseUrl}}/ads
