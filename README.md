@@ -29,23 +29,44 @@
 
 ## Структура проекта
 
-Структура:
+Структура проекта по ЗАДАНИЮ 1 (TSK-1)
 
 ```
-HW8-5_SERVER_Flask/
+HW8-5_SERVER_Flask/TSK-1/
 │
 ├── app/
 │   ├── __init__.py
 │   ├── config.py
 │   ├── models.py
 │   ├── routes.py
-│   ├── auth_routes.py
 │   └── errors.py
 │
+├── __init.py__
 ├── main.py
 ├── requirements.txt
 └── requests.http
 ```
+
+Структура проекта по ЗАДАНИЮ 2 (ADD-1)
+
+```
+HW8-5_SERVER_Flask/ADD-1/
+│
+├── app/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── ads_routes.py
+│   ├── auth_routes.py
+│   ├── models.py
+│   ├── routes.py
+│   └── errors.py
+│
+├── __init.py__
+├── main.py
+├── requirements.txt
+└── requests.http
+```
+
 
 ---
 
